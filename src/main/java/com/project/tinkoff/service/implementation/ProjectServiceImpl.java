@@ -10,6 +10,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +32,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public ProjectResponse createProject(ProjectRequest project) {
-        Project newProject = new Project(project.title(), MOCK_AUTHOR_ID);
+        Project newProject = new Project(project.title(), MOCK_AUTHOR_ID, Collections.emptyList());
         Project savedProject = repository.save(newProject);
         return ProjectResponse.fromDbModel(savedProject);
     }
@@ -48,7 +49,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public ProjectResponse updateProject(long id, ProjectRequest project) {
-        Project updateProject = new Project(project.title(), MOCK_AUTHOR_ID);
+        Project updateProject = new Project(project.title(), MOCK_AUTHOR_ID, Collections.emptyList());
         updateProject.setId(id);
         Project updatedProject = repository.save(updateProject);
         return ProjectResponse.fromDbModel(updatedProject);

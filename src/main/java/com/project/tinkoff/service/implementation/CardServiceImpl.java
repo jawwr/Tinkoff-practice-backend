@@ -4,6 +4,7 @@ import com.project.tinkoff.exception.DataNotFoundException;
 import com.project.tinkoff.repository.CardRepository;
 import com.project.tinkoff.repository.models.AbstractDbEntity;
 import com.project.tinkoff.repository.models.Card;
+import com.project.tinkoff.repository.models.CardStatus;
 import com.project.tinkoff.repository.models.Project;
 import com.project.tinkoff.rest.v1.models.request.CardRequest;
 import com.project.tinkoff.rest.v1.models.response.CardResponse;
@@ -55,7 +56,13 @@ public class CardServiceImpl implements CardService {
         ProjectResponse projectResponse = projectService.getProjectById(projectId);
         Project project = new Project();
         project.setId(projectResponse.id());
-        Card newCard = new Card(card.title(), card.summary(), MOCK_AUTHOR_ID, 0, 0, project);
+        Card newCard = Card.builder()
+                .title(card.title())
+                .summary(card.summary())
+                .authorId(MOCK_AUTHOR_ID)
+                .project(project)
+                .status(CardStatus.NEW)
+                .build();
         Card savedCard = repository.save(newCard);
         return CardResponse.fromDbModel(savedCard);
     }
@@ -70,14 +77,15 @@ public class CardServiceImpl implements CardService {
         if (savedCard.isEmpty()) {
             throw new DataNotFoundException("Card with id " + cardId + " doesn't exist in project with id " + projectId);
         }
-        Card newCard = new Card(
-                card.title(),
-                card.summary(),
-                MOCK_AUTHOR_ID,
-                savedCard.get().getUpVote(),
-                savedCard.get().getDownVote(),
-                project
-        );
+        Card newCard = Card.builder()
+                .title(card.title())
+                .summary(card.summary())
+                .authorId(MOCK_AUTHOR_ID)
+                .downVote(savedCard.get().getDownVote())
+                .upVote(savedCard.get().getUpVote())
+                .project(project)
+                .status(card.status() == null ? savedCard.get().getStatus() : card.status())
+                .build();
         newCard.setId(cardId);
         Card updatedCard = repository.save(newCard);
         return CardResponse.fromDbModel(updatedCard);

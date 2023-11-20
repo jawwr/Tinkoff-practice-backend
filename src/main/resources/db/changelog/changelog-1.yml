@@ -104,3 +104,16 @@ databaseChangeLog:
             onDelete: NO ACTION
             referencedColumnNames: id
             referencedTableName: projects
+  - changeSet:
+      id: 04-01
+      author: arseniy
+      changes:
+        - addColumn:
+            tableName: cards
+            columns:
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+                  defaultValue: 'NEW'

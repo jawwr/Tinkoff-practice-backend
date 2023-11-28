@@ -15,4 +15,6 @@ public interface ProjectService {
     ProjectResponse updateProject(long id, ProjectRequest project);
 
     boolean deleteProject(long id);
+
+    boolean isProjectExist(long id);
 }

@@ -1,5 +1,6 @@
 package com.project.tinkoff.rest.v1.api;
 
+import com.project.tinkoff.repository.models.VoteType;
 import com.project.tinkoff.rest.v1.models.request.CardRequest;
 import com.project.tinkoff.rest.v1.models.response.CardResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,4 +37,9 @@ public interface CardsApi {
     @DeleteMapping("/{cardId}")
     ResponseEntity<Boolean> deleteCard(@PathVariable("projectId") long projectId,
                                        @PathVariable("cardId") long cardId);
+
+    @PostMapping("/{cardId}")
+    ResponseEntity<Boolean> vote(@PathVariable("projectId") long projectId,
+                                 @PathVariable("cardId") long cardId,
+                                 @RequestParam("voteType") VoteType voteType);
 }

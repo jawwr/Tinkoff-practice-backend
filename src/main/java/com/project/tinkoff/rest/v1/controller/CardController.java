@@ -1,5 +1,6 @@
 package com.project.tinkoff.rest.v1.controller;
 
+import com.project.tinkoff.repository.models.VoteType;
 import com.project.tinkoff.rest.v1.api.CardsApi;
 import com.project.tinkoff.rest.v1.models.request.CardRequest;
 import com.project.tinkoff.rest.v1.models.response.CardResponse;
@@ -42,5 +43,10 @@ public class CardController implements CardsApi {
     @Override
     public ResponseEntity<Boolean> deleteCard(long projectId, long cardId) {
         return ResponseEntity.ok(service.deleteCard(projectId, cardId));
+    }
+
+    @Override
+    public ResponseEntity<Boolean> vote(long projectId, long cardId, VoteType voteType) {
+        return ResponseEntity.ok(service.vote(projectId, cardId, voteType));
     }
 }

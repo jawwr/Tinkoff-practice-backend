@@ -1,5 +1,6 @@
 package com.project.tinkoff.service;
 
+import com.project.tinkoff.repository.models.VoteType;
 import com.project.tinkoff.rest.v1.models.request.CardRequest;
 import com.project.tinkoff.rest.v1.models.response.CardResponse;
 
@@ -15,4 +16,6 @@ public interface CardService {
     CardResponse updateCard(long projectId, long cardId, CardRequest card);
 
     boolean deleteCard(long projectId, long cardId);
+
+    boolean vote(long projectId, long cardId, VoteType voteType);
 }

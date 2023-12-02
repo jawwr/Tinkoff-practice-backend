@@ -2,10 +2,7 @@ package com.project.tinkoff.service.implementation;
 
 import com.project.tinkoff.exception.DataNotFoundException;
 import com.project.tinkoff.repository.CardRepository;
-import com.project.tinkoff.repository.models.AbstractDbEntity;
-import com.project.tinkoff.repository.models.Card;
-import com.project.tinkoff.repository.models.CardStatus;
-import com.project.tinkoff.repository.models.Project;
+import com.project.tinkoff.repository.models.*;
 import com.project.tinkoff.rest.v1.models.request.CardRequest;
 import com.project.tinkoff.rest.v1.models.response.CardResponse;
 import com.project.tinkoff.rest.v1.models.response.ProjectResponse;
@@ -32,11 +29,12 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    @Transactional
     public List<CardResponse> getAllCards(long projectId) {
-        projectService.getProjectById(projectId);
+        if (!projectService.isProjectExist(projectId)) {
+            throw new DataNotFoundException(String.format("Project with id %d doesn't exist", projectId));
+        }
         return repository.findAllByProjectId(projectId).stream()
-                .sorted(Comparator.comparing(AbstractDbEntity::getUpdateAt))
+                .sorted(Comparator.comparing(AbstractDbEntity::getCreateAt))
                 .map(CardResponse::fromDbModel)
                 .toList();
     }
@@ -45,7 +43,7 @@ public class CardServiceImpl implements CardService {
     public CardResponse getCardById(long projectId, long cardId) {
         Optional<Card> card = repository.findByProjectIdAndId(projectId, cardId);
         if (card.isEmpty()) {
-            throw new DataNotFoundException("Card with id " + cardId + " doesn't exist in project with id " + projectId);
+            throw new DataNotFoundException(String.format("Card with id %d doesn't exist in project with id %d", cardId, projectId));
         }
         return CardResponse.fromDbModel(card.get());
     }
@@ -75,7 +73,7 @@ public class CardServiceImpl implements CardService {
         project.setId(projectResponse.id());
         Optional<Card> savedCard = repository.findByProjectIdAndId(projectId, cardId);
         if (savedCard.isEmpty()) {
-            throw new DataNotFoundException("Card with id " + cardId + " doesn't exist in project with id " + projectId);
+            throw new DataNotFoundException(String.format("Card with id %d doesn't exist in project with id %d", cardId, projectId));
         }
         Card newCard = Card.builder()
                 .title(card.title())
@@ -95,6 +93,29 @@ public class CardServiceImpl implements CardService {
     @Transactional
     public boolean deleteCard(long projectId, long cardId) {
         repository.deleteByProjectIdAndId(projectId, cardId);
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public boolean vote(long projectId, long cardId, VoteType voteType) {
+        Optional<Card> optCard = repository.findByProjectIdAndId(projectId, cardId);
+        if (optCard.isEmpty()) {
+            throw new DataNotFoundException(String.format("Card with id %d doesn't exist in project with id %d", cardId, projectId));
+        }
+        var card = optCard.get();
+        if (card.getStatus() != CardStatus.NEW) {
+            return false;
+        }
+        if (voteType == VoteType.VOTE_FOR) {
+            int upVote = card.getUpVote();
+            card.setUpVote(upVote + 1);
+            repository.save(card);
+            return true;
+        }
+        int downVote = card.getDownVote();
+        card.setDownVote(downVote + 1);
+        repository.save(card);
         return true;
     }
 }

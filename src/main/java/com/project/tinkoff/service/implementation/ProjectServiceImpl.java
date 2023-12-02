@@ -61,4 +61,9 @@ public class ProjectServiceImpl implements ProjectService {
         repository.deleteById(id);
         return true;
     }
+
+    @Override
+    public boolean isProjectExist(long id) {
+        return repository.isProjectExist(id);
+    }
 }

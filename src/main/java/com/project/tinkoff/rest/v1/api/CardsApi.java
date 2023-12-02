@@ -38,7 +38,8 @@ public interface CardsApi {
     ResponseEntity<Boolean> deleteCard(@PathVariable("projectId") long projectId,
                                        @PathVariable("cardId") long cardId);
 
-    @PostMapping("/{cardId}")
+    @Operation(summary = "Vote for card")
+    @PostMapping("/{cardId}/vote")
     ResponseEntity<Boolean> vote(@PathVariable("projectId") long projectId,
                                  @PathVariable("cardId") long cardId,
                                  @RequestParam("voteType") VoteType voteType);

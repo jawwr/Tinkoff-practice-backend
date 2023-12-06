@@ -7,7 +7,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @RequestMapping("/api/v1/auth")
 @Tag(name = "Аутентификация")
@@ -31,10 +33,4 @@ public interface AuthControllerApi {
     })
     @PostMapping("/login")
     ResponseEntity<?> login(@RequestBody LoginCredential credential);
-
-    @GetMapping("/isValid")
-    ResponseEntity<?> isValidToken(@RequestParam("token") String token);
-
-    @GetMapping("/getUserId")
-    ResponseEntity<?> getUserId(@RequestParam("token") String token);
 }

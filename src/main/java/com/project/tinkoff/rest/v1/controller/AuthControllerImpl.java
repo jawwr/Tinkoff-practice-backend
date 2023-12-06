@@ -24,14 +24,4 @@ public class AuthControllerImpl implements AuthControllerApi {
     public ResponseEntity<?> login(LoginCredential credential) {
         return ResponseEntity.ok(service.login(credential));
     }
-
-    @Override
-    public ResponseEntity<?> isValidToken(String token) {
-        return ResponseEntity.ok(service.isValidToken(token));
-    }
-
-    @Override
-    public ResponseEntity<?> getUserId(String token) {
-        return ResponseEntity.ok(service.getUser(token));
-    }
 }

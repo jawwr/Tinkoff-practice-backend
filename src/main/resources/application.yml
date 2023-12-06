@@ -24,3 +24,7 @@ springdoc:
   swagger-ui:
     path: /docs
   paths-to-match: /api/**
+
+app:
+  jwtSecret:
+    asdasdasd123123supersecretkey123123123asdasdasd

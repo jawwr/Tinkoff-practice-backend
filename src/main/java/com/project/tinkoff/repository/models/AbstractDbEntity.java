@@ -11,8 +11,9 @@ import java.time.LocalDateTime;
 @Getter
 public abstract class AbstractDbEntity implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idGenerator")
-    @SequenceGenerator(name = "idGenerator", sequenceName = "hibernate_sequence", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "idGenerator")
+//    @SequenceGenerator(name = "idGenerator", sequenceName = "hibernate_sequence", allocationSize = 1)
     protected @Setter long id;
 
     @Column(name = "created_at", nullable = false)

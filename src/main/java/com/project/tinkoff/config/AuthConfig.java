@@ -28,10 +28,12 @@ public class AuthConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("*/v1/auth/**")
+                    auth.requestMatchers("/api/**")
                             .permitAll();
-                    auth.requestMatchers("*/v1/**")
-                            .authenticated();
+//                    auth.requestMatchers("*/v1/auth/**")
+//                            .permitAll();
+//                    auth.requestMatchers("*/v1/**")
+//                            .authenticated();
                     auth.requestMatchers(HttpMethod.POST)
                             .authenticated();
                     auth.requestMatchers(HttpMethod.DELETE)

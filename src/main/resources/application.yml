@@ -1,7 +1,6 @@
 server:
   port:
     8080
-  forward-headers-strategy: framework
 
 spring:
   datasource:
@@ -16,14 +15,6 @@ spring:
 
   liquibase:
     enabled: true
-
-
-springdoc:
-  api-docs:
-    path: /docs
-  swagger-ui:
-    path: /docs
-  paths-to-match: /api/**
 
 app:
   jwtSecret:

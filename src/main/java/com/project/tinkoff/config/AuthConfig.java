@@ -24,12 +24,12 @@ public class AuthConfig {
     private final LogoutHandler logoutHandler;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationProvider provider, JwtFilter filter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http/*, AuthenticationProvider provider, JwtFilter filter*/) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/*")
-                            .permitAll();
+//                .authorizeHttpRequests(auth -> {
+//                    auth.requestMatchers("/*")
+//                            .permitAll();
 //                    auth.requestMatchers("*/v1/auth/**")
 //                            .permitAll();
 //                    auth.requestMatchers("*/v1/**")
@@ -40,9 +40,9 @@ public class AuthConfig {
 //                            .authenticated();
 //                    auth.requestMatchers(HttpMethod.PUT)
 //                            .authenticated();
-                })
-                .authenticationProvider(provider)
-                .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
+//                })
+//                .authenticationProvider(provider)
+//                .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

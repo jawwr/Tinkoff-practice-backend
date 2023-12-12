@@ -3,11 +3,16 @@ package com.project.tinkoff.service.implementation;
 import com.project.tinkoff.exception.DataNotFoundException;
 import com.project.tinkoff.repository.ProjectRepository;
 import com.project.tinkoff.repository.models.Project;
+import com.project.tinkoff.repository.models.UserDetailImpl;
+import com.project.tinkoff.repository.models.UserDto;
 import com.project.tinkoff.rest.v1.models.request.ProjectRequest;
 import com.project.tinkoff.rest.v1.models.response.ProjectResponse;
 import com.project.tinkoff.service.ProjectService;
+import com.project.tinkoff.service.UserContextService;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -15,14 +20,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class ProjectServiceImpl implements ProjectService {
     private final ProjectRepository repository;
-    private static final long MOCK_AUTHOR_ID = 1000;
-
-    @Autowired
-    public ProjectServiceImpl(ProjectRepository repository) {
-        this.repository = repository;
-    }
+    private final UserContextService userContextService;
 
     @Override
     public List<ProjectResponse> getAll() {
@@ -32,7 +34,8 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public ProjectResponse createProject(ProjectRequest project) {
-        Project newProject = new Project(project.title(), MOCK_AUTHOR_ID, Collections.emptyList());
+        UserDto user = userContextService.getCurrentUser();
+        Project newProject = new Project(project.title(), user.id(), Collections.emptyList());
         Project savedProject = repository.save(newProject);
         return ProjectResponse.fromDbModel(savedProject);
     }
@@ -49,8 +52,8 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public ProjectResponse updateProject(long id, ProjectRequest project) {
-        Project updateProject = new Project(project.title(), MOCK_AUTHOR_ID, Collections.emptyList());
-        updateProject.setId(id);
+        UserDto user = userContextService.getCurrentUser();
+        Project updateProject = new Project(project.title(), user.id(), Collections.emptyList());
         Project updatedProject = repository.save(updateProject);
         return ProjectResponse.fromDbModel(updatedProject);
     }

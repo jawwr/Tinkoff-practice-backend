@@ -16,33 +16,28 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
 
 @Configuration
 @RequiredArgsConstructor
 public class AuthConfig {
-    private final LogoutHandler logoutHandler;
-
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http/*, AuthenticationProvider provider, JwtFilter filter*/) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationProvider provider, JwtFilter filter) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
-//                .authorizeHttpRequests(auth -> {
-//                    auth.requestMatchers("/*")
-//                            .permitAll();
-//                    auth.requestMatchers("*/v1/auth/**")
-//                            .permitAll();
-//                    auth.requestMatchers("*/v1/**")
-//                            .authenticated();
-//                    auth.requestMatchers(HttpMethod.POST)
-//                            .authenticated();
-//                    auth.requestMatchers(HttpMethod.DELETE)
-//                            .authenticated();
-//                    auth.requestMatchers(HttpMethod.PUT)
-//                            .authenticated();
-//                })
-//                .authenticationProvider(provider)
-//                .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
+                .authorizeHttpRequests(auth -> {
+                    auth.requestMatchers("*/v1/auth/**")
+                            .permitAll();
+                    auth.requestMatchers("*/v1/**")
+                            .authenticated();
+                    auth.requestMatchers(HttpMethod.POST)
+                            .authenticated();
+                    auth.requestMatchers(HttpMethod.DELETE)
+                            .authenticated();
+                    auth.requestMatchers(HttpMethod.PUT)
+                            .authenticated();
+                })
+                .authenticationProvider(provider)
+                .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

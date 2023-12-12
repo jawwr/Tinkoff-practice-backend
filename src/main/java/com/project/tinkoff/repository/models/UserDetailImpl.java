@@ -1,20 +1,16 @@
 package com.project.tinkoff.repository.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
+@Data
 public class UserDetailImpl implements UserDetails {
     private static final long serialVersionUID = 1L;
 
@@ -31,7 +27,7 @@ public class UserDetailImpl implements UserDetails {
 //                .map(role -> new SimpleGrantedAuthority(role.getName()))
 //                .collect(Collectors.toList());
 
-        List<GrantedAuthority> authorities = new ArrayList<>();
+        List<GrantedAuthority> authorities = Collections.emptyList();
 
         return new UserDetailImpl(
                 user.getId(),

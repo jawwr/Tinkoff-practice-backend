@@ -6,11 +6,13 @@ import com.project.tinkoff.rest.v1.models.response.ProjectResponse;
 import com.project.tinkoff.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
+@Validated
 public class ProjectsController implements ProjectsApi {
     private final ProjectService service;
 

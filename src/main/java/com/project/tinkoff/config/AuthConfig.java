@@ -29,12 +29,6 @@ public class AuthConfig {
                             .permitAll();
                     auth.requestMatchers("*/v1/**")
                             .authenticated();
-                    auth.requestMatchers(HttpMethod.POST)
-                            .authenticated();
-                    auth.requestMatchers(HttpMethod.DELETE)
-                            .authenticated();
-                    auth.requestMatchers(HttpMethod.PUT)
-                            .authenticated();
                 })
                 .authenticationProvider(provider)
                 .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)

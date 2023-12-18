@@ -8,7 +8,9 @@ import com.project.tinkoff.rest.v1.models.response.CardResponse;
 import com.project.tinkoff.rest.v1.models.response.ProjectResponse;
 import com.project.tinkoff.service.CardService;
 import com.project.tinkoff.service.ProjectService;
+import com.project.tinkoff.service.UserContextService;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,16 +19,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CardServiceImpl implements CardService {
     private final CardRepository repository;
     private final ProjectService projectService;
-    private static final long MOCK_AUTHOR_ID = 1000;
-
-    @Autowired
-    public CardServiceImpl(CardRepository repository, ProjectService projectService) {
-        this.repository = repository;
-        this.projectService = projectService;
-    }
+    private final UserContextService userContextService;
 
     @Override
     public List<CardResponse> getAllCards(long projectId) {
@@ -54,10 +51,11 @@ public class CardServiceImpl implements CardService {
         ProjectResponse projectResponse = projectService.getProjectById(projectId);
         Project project = new Project();
         project.setId(projectResponse.id());
+        UserDto user = userContextService.getCurrentUser();
         Card newCard = Card.builder()
                 .title(card.title())
                 .summary(card.summary())
-                .authorId(MOCK_AUTHOR_ID)
+                .authorId(user.id())
                 .project(project)
                 .status(CardStatus.NEW)
                 .build();
@@ -75,10 +73,11 @@ public class CardServiceImpl implements CardService {
         if (savedCard.isEmpty()) {
             throw new DataNotFoundException(String.format("Card with id %d doesn't exist in project with id %d", cardId, projectId));
         }
+        UserDto user = userContextService.getCurrentUser();
         Card newCard = Card.builder()
                 .title(card.title())
                 .summary(card.summary())
-                .authorId(MOCK_AUTHOR_ID)
+                .authorId(user.id())
                 .downVote(savedCard.get().getDownVote())
                 .upVote(savedCard.get().getUpVote())
                 .project(project)

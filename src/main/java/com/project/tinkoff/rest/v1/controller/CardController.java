@@ -7,11 +7,13 @@ import com.project.tinkoff.rest.v1.models.response.CardResponse;
 import com.project.tinkoff.service.CardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
+@Validated
 public class CardController implements CardsApi {
     private final CardService service;
 

@@ -4,7 +4,6 @@ import com.project.tinkoff.arth.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -25,7 +24,16 @@ public class AuthConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("*/v1/auth/**")
+                    auth.requestMatchers("*/v1/auth/**",
+                                    "/v2/api-docs",
+                                    "/swagger-resources",
+                                    "/swagger-resources/**",
+                                    "/configuration/ui",
+                                    "/configuration/security",
+                                    "/swagger-ui.html",
+                                    "/webjars/**",
+                                    "/v3/api-docs/**",
+                                    "/swagger-ui/**")
                             .permitAll();
                     auth.requestMatchers("*/v1/**")
                             .authenticated();

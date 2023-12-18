@@ -38,7 +38,7 @@ public class CardController implements CardsApi {
     }
 
     @Override
-    public ResponseEntity<CardResponse> updateCard(long projectId, long cardId, CardRequest card) {
+    public ResponseEntity<CardResponse> updateCard(long projectId, long cardId, @Validated CardRequest card) {
         return ResponseEntity.ok(service.updateCard(projectId, cardId, card));
     }
 

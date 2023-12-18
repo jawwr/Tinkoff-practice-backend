@@ -1,6 +1,7 @@
 package com.project.tinkoff.service.implementation;
 
 import com.project.tinkoff.exception.DataNotFoundException;
+import com.project.tinkoff.mapper.CardMapper;
 import com.project.tinkoff.repository.CardRepository;
 import com.project.tinkoff.repository.models.*;
 import com.project.tinkoff.rest.v1.models.request.CardRequest;
@@ -9,10 +10,9 @@ import com.project.tinkoff.rest.v1.models.response.ProjectResponse;
 import com.project.tinkoff.service.CardService;
 import com.project.tinkoff.service.ProjectService;
 import com.project.tinkoff.service.UserContextService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
@@ -24,6 +24,7 @@ public class CardServiceImpl implements CardService {
     private final CardRepository repository;
     private final ProjectService projectService;
     private final UserContextService userContextService;
+    private final CardMapper cardMapper;
 
     @Override
     public List<CardResponse> getAllCards(long projectId) {
@@ -32,7 +33,7 @@ public class CardServiceImpl implements CardService {
         }
         return repository.findAllByProjectId(projectId).stream()
                 .sorted(Comparator.comparing(AbstractDbEntity::getCreateAt))
-                .map(CardResponse::fromDbModel)
+                .map(cardMapper::fromModel)
                 .toList();
     }
 
@@ -42,7 +43,7 @@ public class CardServiceImpl implements CardService {
         if (card.isEmpty()) {
             throw new DataNotFoundException(String.format("Card with id %d doesn't exist in project with id %d", cardId, projectId));
         }
-        return CardResponse.fromDbModel(card.get());
+        return cardMapper.fromModel(card.get());
     }
 
     @Override
@@ -60,32 +61,33 @@ public class CardServiceImpl implements CardService {
                 .status(CardStatus.NEW)
                 .build();
         Card savedCard = repository.save(newCard);
-        return CardResponse.fromDbModel(savedCard);
+        return cardMapper.fromModel(savedCard);
     }
 
     @Override
     @Transactional
-    public CardResponse updateCard(long projectId, long cardId, CardRequest card) {
-        ProjectResponse projectResponse = projectService.getProjectById(projectId);
-        Project project = new Project();
-        project.setId(projectResponse.id());
-        Optional<Card> savedCard = repository.findByProjectIdAndId(projectId, cardId);
-        if (savedCard.isEmpty()) {
+    public CardResponse updateCard(long projectId, long cardId, CardRequest cardRequest) {
+        Optional<Card> optCard = repository.findByProjectIdAndId(projectId, cardId);
+        if (optCard.isEmpty()) {
             throw new DataNotFoundException(String.format("Card with id %d doesn't exist in project with id %d", cardId, projectId));
         }
-        UserDto user = userContextService.getCurrentUser();
-        Card newCard = Card.builder()
-                .title(card.title())
-                .summary(card.summary())
-                .authorId(user.id())
-                .downVote(savedCard.get().getDownVote())
-                .upVote(savedCard.get().getUpVote())
-                .project(project)
-                .status(card.status() == null ? savedCard.get().getStatus() : card.status())
-                .build();
-        newCard.setId(cardId);
-        Card updatedCard = repository.save(newCard);
-        return CardResponse.fromDbModel(updatedCard);
+        Card card = optCard.get();
+        updateSavedCard(card, cardRequest);
+        repository.save(card);
+        Card updatedCard = repository.findByProjectIdAndId(projectId, cardId).get();
+        return cardMapper.fromModel(updatedCard);
+    }
+
+    private void updateSavedCard(Card savedCard, CardRequest request) {
+        if (request.status() != null) {
+            savedCard.setStatus(request.status());
+        }
+        if (request.summary() != null) {
+            savedCard.setSummary(request.summary());
+        }
+        if (request.title() != null) {
+            savedCard.setTitle(request.title());
+        }
     }
 
     @Override

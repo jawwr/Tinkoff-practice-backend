@@ -2,17 +2,18 @@ package com.project.tinkoff.service.implementation;
 
 import com.project.tinkoff.exception.DataNotFoundException;
 import com.project.tinkoff.mapper.ProjectMapper;
+import com.project.tinkoff.repository.ProjectMemberRepository;
 import com.project.tinkoff.repository.ProjectRepository;
-import com.project.tinkoff.repository.models.Project;
-import com.project.tinkoff.repository.models.UserDto;
+import com.project.tinkoff.repository.UserRepository;
+import com.project.tinkoff.repository.models.*;
 import com.project.tinkoff.rest.v1.models.request.ProjectRequest;
 import com.project.tinkoff.rest.v1.models.response.ProjectResponse;
 import com.project.tinkoff.service.ProjectService;
 import com.project.tinkoff.service.UserContextService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,31 +26,43 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectRepository repository;
     private final UserContextService userContextService;
     private final ProjectMapper projectMapper;
+    private final UserRepository userRepository;
+    private final ProjectMemberRepository projectMemberRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProjectResponse> getAll() {
-        return repository.findAll().stream().map(projectMapper::fromModel).toList();
+        UserDto user = userContextService.getCurrentUser();
+        return repository.findAllUsersProjects(user.id())
+                .stream()
+                .map(projectMapper::fromModel)
+                .toList();
     }
 
     @Override
     @Transactional
     public ProjectResponse createProject(ProjectRequest project) {
-        UserDto user = userContextService.getCurrentUser();
-        Project newProject = new Project(project.title(), user.id(), Collections.emptyList());
+        UserDto currentUser = userContextService.getCurrentUser();
+        Project newProject = new Project(project.title(), currentUser.id(), Collections.emptyList());
         Project savedProject = repository.save(newProject);
+
+        User user = userRepository.findUserById(currentUser.id());
+        ProjectMember projectMember = new ProjectMember(user, savedProject, ProjectRole.ADMIN, 1);
+        projectMemberRepository.save(projectMember);
+
         return projectMapper.fromModel(savedProject);
     }
 
     @Override
     public ProjectResponse getProjectById(long id) {
-        Project project = getSavedProjectById(id);
+        Project project = getProjectByIdForCurrenUser(id);
         return projectMapper.fromModel(project);
     }
 
     @Override
     @Transactional
     public ProjectResponse updateProject(long id, ProjectRequest projectRequest) {
-        Project project = getSavedProjectById(id);
+        Project project = getProjectByIdForCurrenUser(id);
         updateProject(project, projectRequest);
         Project updatedProject = repository.save(project);
         return projectMapper.fromModel(updatedProject);
@@ -63,16 +76,17 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public boolean isProjectExist(long id) {
-        return repository.isProjectExist(id);
+    public boolean checkProjectExists(long id) {
+        return getProjectByIdForCurrenUser(id) != null;
     }
 
-    private Project getSavedProjectById(long id) {
-        Optional<Project> optProject = repository.findById(id);
-        if (optProject.isEmpty()) {
-            throw new DataNotFoundException(String.format("Project with id %d doesn't exist", id));
+    private Project getProjectByIdForCurrenUser(long projectId) {
+        UserDto userCurrent = userContextService.getCurrentUser();
+        Optional<ProjectMember> optProjectMember = projectMemberRepository.findProjectMemberByProjectIdAndUserId(projectId, userCurrent.id());
+        if (optProjectMember.isEmpty()) {
+            throw new DataNotFoundException(String.format("Project with id %d doesn't exist", projectId));
         }
-        return optProject.get();
+        return optProjectMember.get().getProject();
     }
 
     private void updateProject(Project savedProject, ProjectRequest newProject) {

@@ -219,3 +219,64 @@ databaseChangeLog:
         - addAutoIncrement:
             tableName: projects
             columnName: id
+  - changeSet:
+      id: 06-01
+      author: arseniy
+      changes:
+        - createTable:
+            tableName: project_members
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: project_members_pk
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: project_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: vote_count
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: now()
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: now()
+        - addForeignKeyConstraint:
+            baseColumnNames: user_id
+            baseTableName: project_members
+            constraintName: fk_project_members_user
+            onDelete: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: users
+        - addForeignKeyConstraint:
+            baseColumnNames: project_id
+            baseTableName: project_members
+            constraintName: fk_project_members_project
+            onDelete: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: projects

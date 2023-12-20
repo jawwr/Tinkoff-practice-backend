@@ -1,8 +1,10 @@
 package com.project.tinkoff.service.implementation;
 
 import com.project.tinkoff.exception.DataNotFoundException;
+import com.project.tinkoff.exception.PermissionDeniedException;
 import com.project.tinkoff.mapper.CardMapper;
 import com.project.tinkoff.repository.CardRepository;
+import com.project.tinkoff.repository.ProjectMemberRepository;
 import com.project.tinkoff.repository.models.*;
 import com.project.tinkoff.rest.v1.models.request.CardRequest;
 import com.project.tinkoff.rest.v1.models.response.CardResponse;
@@ -25,12 +27,11 @@ public class CardServiceImpl implements CardService {
     private final ProjectService projectService;
     private final UserContextService userContextService;
     private final CardMapper cardMapper;
+    private final ProjectMemberRepository projectMemberRepository;
 
     @Override
     public List<CardResponse> getAllCards(long projectId) {
-        if (!projectService.isProjectExist(projectId)) {
-            throw new DataNotFoundException(String.format("Project with id %d doesn't exist", projectId));
-        }
+        projectService.checkProjectExists(projectId);
         return repository.findAllByProjectId(projectId).stream()
                 .sorted(Comparator.comparing(AbstractDbEntity::getCreateAt))
                 .map(cardMapper::fromModel)
@@ -39,6 +40,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public CardResponse getCardById(long projectId, long cardId) {
+        projectService.checkProjectExists(projectId);
         Optional<Card> card = repository.findByProjectIdAndId(projectId, cardId);
         if (card.isEmpty()) {
             throw new DataNotFoundException(String.format("Card with id %d doesn't exist in project with id %d", cardId, projectId));
@@ -67,6 +69,7 @@ public class CardServiceImpl implements CardService {
     @Override
     @Transactional
     public CardResponse updateCard(long projectId, long cardId, CardRequest cardRequest) {
+        projectService.checkProjectExists(projectId);
         Optional<Card> optCard = repository.findByProjectIdAndId(projectId, cardId);
         if (optCard.isEmpty()) {
             throw new DataNotFoundException(String.format("Card with id %d doesn't exist in project with id %d", cardId, projectId));
@@ -93,6 +96,15 @@ public class CardServiceImpl implements CardService {
     @Override
     @Transactional
     public boolean deleteCard(long projectId, long cardId) {
+        UserDto user = userContextService.getCurrentUser();
+        Optional<ProjectMember> optProjectMember = projectMemberRepository.findProjectMemberByProjectIdAndUserId(projectId, user.id());
+        if (optProjectMember.isEmpty()) {
+            throw new DataNotFoundException(String.format("Card with id %d doesn't exist in project with id %d", cardId, projectId));
+        }
+        ProjectMember projectMember = optProjectMember.get();
+        if (projectMember.getRole() != ProjectRole.ADMIN) {
+            throw new PermissionDeniedException("User don't have permission for deleting");
+        }
         repository.deleteByProjectIdAndId(projectId, cardId);
         return true;
     }
@@ -100,6 +112,7 @@ public class CardServiceImpl implements CardService {
     @Override
     @Transactional
     public boolean vote(long projectId, long cardId, VoteType voteType) {
+        projectService.checkProjectExists(projectId);
         Optional<Card> optCard = repository.findByProjectIdAndId(projectId, cardId);
         if (optCard.isEmpty()) {
             throw new DataNotFoundException(String.format("Card with id %d doesn't exist in project with id %d", cardId, projectId));

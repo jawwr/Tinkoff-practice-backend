@@ -16,5 +16,5 @@ public interface ProjectService {
 
     boolean deleteProject(long id);
 
-    boolean isProjectExist(long id);
+    boolean checkProjectExists(long id);
 }

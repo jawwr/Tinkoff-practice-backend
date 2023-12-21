@@ -17,4 +17,6 @@ public interface ProjectService {
     boolean deleteProject(long id);
 
     boolean checkProjectExists(long id);
+
+    String generateInviteLink(long projectId);
 }

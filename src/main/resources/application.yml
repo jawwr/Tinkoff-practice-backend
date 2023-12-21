@@ -17,5 +17,8 @@ spring:
     enabled: true
 
 app:
-  jwtSecret:
-    asdasdasd123123supersecretkey123123123asdasdasd
+  jwt:
+    secret-key:
+      asdasdasd123123supersecretkey123123123asdasdasd
+    expire-time:
+      86400

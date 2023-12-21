@@ -5,6 +5,7 @@ import com.project.tinkoff.exception.PermissionDeniedException;
 import com.project.tinkoff.mapper.CardMapper;
 import com.project.tinkoff.repository.CardRepository;
 import com.project.tinkoff.repository.ProjectMemberRepository;
+import com.project.tinkoff.repository.UserRepository;
 import com.project.tinkoff.repository.models.*;
 import com.project.tinkoff.rest.v1.models.request.CardRequest;
 import com.project.tinkoff.rest.v1.models.response.CardResponse;
@@ -28,13 +29,17 @@ public class CardServiceImpl implements CardService {
     private final UserContextService userContextService;
     private final CardMapper cardMapper;
     private final ProjectMemberRepository projectMemberRepository;
+    private final UserRepository userRepository;
 
     @Override
     public List<CardResponse> getAllCards(long projectId) {
         projectService.checkProjectExists(projectId);
         return repository.findAllByProjectId(projectId).stream()
                 .sorted(Comparator.comparing(AbstractDbEntity::getCreateAt))
-                .map(cardMapper::fromModel)
+                .map(card -> {
+                    var author = userRepository.findUserById(card.getAuthorId());//TODO переделать
+                    return cardMapper.fromModel(card, author.getUsername());
+                })
                 .toList();
     }
 
@@ -45,7 +50,8 @@ public class CardServiceImpl implements CardService {
         if (card.isEmpty()) {
             throw new DataNotFoundException(String.format("Card with id %d doesn't exist in project with id %d", cardId, projectId));
         }
-        return cardMapper.fromModel(card.get());
+        var author = userRepository.findUserById(card.get().getAuthorId());//TODO переделать
+        return cardMapper.fromModel(card.get(), author.getUsername());
     }
 
     @Override
@@ -63,7 +69,7 @@ public class CardServiceImpl implements CardService {
                 .status(CardStatus.NEW)
                 .build();
         Card savedCard = repository.save(newCard);
-        return cardMapper.fromModel(savedCard);
+        return cardMapper.fromModel(savedCard, user.username());//TODO переделать
     }
 
     @Override
@@ -78,7 +84,8 @@ public class CardServiceImpl implements CardService {
         updateSavedCard(card, cardRequest);
         repository.save(card);
         Card updatedCard = repository.findByProjectIdAndId(projectId, cardId).get();
-        return cardMapper.fromModel(updatedCard);
+        var author = userRepository.findUserById(updatedCard.getAuthorId());//TODO переделать
+        return cardMapper.fromModel(updatedCard, author.getUsername());
     }
 
     private void updateSavedCard(Card savedCard, CardRequest request) {

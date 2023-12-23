@@ -19,4 +19,6 @@ public interface ProjectService {
     boolean checkProjectExists(long id);
 
     String generateInviteLink(long projectId);
+
+    boolean enterFromInviteLink(String inviteLink);
 }

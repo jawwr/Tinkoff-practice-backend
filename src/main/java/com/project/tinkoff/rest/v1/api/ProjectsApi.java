@@ -36,4 +36,8 @@ public interface ProjectsApi {
     @Operation(summary = "Create invite link")
     @PostMapping("/{projectId}/link")
     ResponseEntity<String> generateInviteLink(@PathVariable("projectId") long projectId);
+
+    @Operation(summary = "Enter to project from invite link")
+    @PostMapping("/invite/{inviteLink}")
+    ResponseEntity<Boolean> enterFromInviteLink(@PathVariable("inviteLink") String inviteLink);
 }

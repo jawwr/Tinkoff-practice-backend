@@ -50,4 +50,9 @@ public class ProjectsController implements ProjectsApi {
     public ResponseEntity<String> generateInviteLink(long projectId) {
         return ResponseEntity.ok(service.generateInviteLink(projectId));
     }
+
+    @Override
+    public ResponseEntity<Boolean> enterFromInviteLink(String inviteLink) {
+        return ResponseEntity.ok(service.enterFromInviteLink(inviteLink));
+    }
 }

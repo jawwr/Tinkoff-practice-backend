@@ -2,6 +2,7 @@ package com.project.tinkoff.rest.v1.api;
 
 import com.project.tinkoff.rest.v1.models.response.ProjectMemberResponse;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,4 +13,8 @@ import java.util.List;
 public interface ProjectMemberApi {
     @GetMapping
     ResponseEntity<List<ProjectMemberResponse>> getProjectMembers(@PathVariable("projectId") long projectId);
+
+    @DeleteMapping("/{memberId}")
+    ResponseEntity<Boolean> deleteMemberFromProject(@PathVariable("projectId") long projectId,
+                                                    @PathVariable("memberId") long memberId);
 }

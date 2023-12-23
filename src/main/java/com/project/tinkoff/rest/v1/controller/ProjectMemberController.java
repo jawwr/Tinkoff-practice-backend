@@ -18,4 +18,9 @@ public class ProjectMemberController implements ProjectMemberApi {
     public ResponseEntity<List<ProjectMemberResponse>> getProjectMembers(long projectId) {
         return ResponseEntity.ok(service.getProjectMembers(projectId));
     }
+
+    @Override
+    public ResponseEntity<Boolean> deleteMemberFromProject(long projectId, long memberId) {
+        return ResponseEntity.ok(service.deleteMemberFromProject(projectId, memberId));
+    }
 }

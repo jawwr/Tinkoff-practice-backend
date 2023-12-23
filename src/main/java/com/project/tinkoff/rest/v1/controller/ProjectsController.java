@@ -45,4 +45,9 @@ public class ProjectsController implements ProjectsApi {
     public ResponseEntity<Boolean> deleteProject(long projectId) {
         return ResponseEntity.ok(service.deleteProject(projectId));
     }
+
+    @Override
+    public ResponseEntity<String> generateInviteLink(long projectId) {
+        return ResponseEntity.ok(service.generateInviteLink(projectId));
+    }
 }

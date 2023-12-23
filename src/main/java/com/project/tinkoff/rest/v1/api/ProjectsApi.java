@@ -32,4 +32,8 @@ public interface ProjectsApi {
     @Operation(summary = "Delete project")
     @DeleteMapping("/{projectId}")
     ResponseEntity<Boolean> deleteProject(@PathVariable("projectId") long projectId);
+
+    @Operation(summary = "Create invite link")
+    @PostMapping("/{projectId}/link")
+    ResponseEntity<String> generateInviteLink(@PathVariable("projectId") long projectId);
 }

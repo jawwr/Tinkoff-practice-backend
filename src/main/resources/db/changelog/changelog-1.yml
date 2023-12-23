@@ -280,3 +280,41 @@ databaseChangeLog:
             onDelete: NO ACTION
             referencedColumnNames: id
             referencedTableName: projects
+  - changeSet:
+      id: 07-01
+      author: arseniy
+      changes:
+        - createTable:
+            tableName: project_invite_links
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: project_link_pk
+              - column:
+                  name: project_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: link
+                  type: VARCHAR(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expire_time
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+                  defaultValueComputed: now()
+        - addForeignKeyConstraint:
+            baseColumnNames: project_id
+            baseTableName: project_invite_links
+            constraintName: fk_project_links_project
+            onDelete: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: projects

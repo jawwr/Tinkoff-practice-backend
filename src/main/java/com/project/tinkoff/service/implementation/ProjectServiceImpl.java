@@ -2,6 +2,7 @@ package com.project.tinkoff.service.implementation;
 
 import com.project.tinkoff.exception.DataNotFoundException;
 import com.project.tinkoff.mapper.ProjectMapper;
+import com.project.tinkoff.repository.ProjectInviteLinkRepository;
 import com.project.tinkoff.repository.ProjectMemberRepository;
 import com.project.tinkoff.repository.ProjectRepository;
 import com.project.tinkoff.repository.UserRepository;
@@ -12,9 +13,11 @@ import com.project.tinkoff.service.ProjectService;
 import com.project.tinkoff.service.UserContextService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +31,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectMapper projectMapper;
     private final UserRepository userRepository;
     private final ProjectMemberRepository projectMemberRepository;
+    private final ProjectInviteLinkRepository projectInviteLinkRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -78,6 +82,20 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public boolean checkProjectExists(long id) {
         return getProjectByIdForCurrenUser(id) != null;
+    }
+
+    @Override
+    @Transactional
+    public String generateInviteLink(long projectId) {
+        Project project = getProjectByIdForCurrenUser(projectId);
+        String link = RandomStringUtils.randomAlphabetic(10);
+        ProjectInviteLink inviteLink = ProjectInviteLink.builder()
+                .project(project)
+                .link(link)
+                .expireTime(LocalDateTime.now().plusMinutes(10))
+                .build();
+        projectInviteLinkRepository.save(inviteLink);
+        return link;
     }
 
     private Project getProjectByIdForCurrenUser(long projectId) {

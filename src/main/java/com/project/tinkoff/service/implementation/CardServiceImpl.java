@@ -34,8 +34,7 @@ public class CardServiceImpl implements CardService {
     @Override
     public List<CardResponse> getAllCards(long projectId) {
         projectService.checkProjectExists(projectId);
-        return repository.findAllByProjectId(projectId).stream()
-                .sorted(Comparator.comparing(AbstractDbEntity::getCreateAt))
+        return repository.findAllByProjectIdOrderByUpVoteDescCreateAtAsc(projectId).stream()
                 .map(card -> {
                     var author = userRepository.findUserById(card.getAuthorId());//TODO переделать
                     return cardMapper.fromModel(card, author.getUsername());

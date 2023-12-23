@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -119,7 +118,13 @@ public class CardServiceImpl implements CardService {
     @Transactional
     public boolean vote(long projectId, long cardId, VoteType voteType) {
         projectService.checkProjectExists(projectId);
+        UserDto currentUser = userContextService.getCurrentUser();
+        ProjectMember member = projectMemberRepository.findProjectMemberByProjectIdAndUserId(projectId, currentUser.id()).get();
+
         Optional<Card> optCard = repository.findByProjectIdAndId(projectId, cardId);
+        if (member.getVoteCount() == 0) {
+            return false;
+        }
         if (optCard.isEmpty()) {
             throw new DataNotFoundException(String.format("Card with id %d doesn't exist in project with id %d", cardId, projectId));
         }
@@ -127,6 +132,7 @@ public class CardServiceImpl implements CardService {
         if (card.getStatus() != CardStatus.NEW) {
             return false;
         }
+        member.setVoteCount(member.getVoteCount() - 1);
         if (voteType == VoteType.VOTE_FOR) {
             int upVote = card.getUpVote();
             card.setUpVote(upVote + 1);

@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: classpath:db/changelog/changelog-1.yml
+  - include:
+      file: classpath:db/changelog/changelog-2.yml

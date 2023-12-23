@@ -110,7 +110,7 @@ public class ProjectServiceImpl implements ProjectService {
         UserDto userDto = userContextService.getCurrentUser();
         var savedProjectMember = projectMemberRepository.findProjectMemberByProjectIdAndUserId(savedLink.getProject().getId(), userDto.id());
         if (savedProjectMember.isPresent()) {
-            projectMapper.fromModel(savedLink.getProject());
+            return projectMapper.fromModel(savedLink.getProject());
         }
         User user = userRepository.findUserById(userDto.id());
         ProjectMember projectMember = new ProjectMember(user, savedLink.getProject(), ProjectRole.MEMBER, 1);//TODO переделать на настройки кастомные

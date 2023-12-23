@@ -52,7 +52,7 @@ public class ProjectsController implements ProjectsApi {
     }
 
     @Override
-    public ResponseEntity<Boolean> enterFromInviteLink(String inviteLink) {
+    public ResponseEntity<ProjectResponse> enterFromInviteLink(String inviteLink) {
         return ResponseEntity.ok(service.enterFromInviteLink(inviteLink));
     }
 }

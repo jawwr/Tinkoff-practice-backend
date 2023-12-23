@@ -100,17 +100,17 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
-    public boolean enterFromInviteLink(String inviteLink) {
+    public ProjectResponse enterFromInviteLink(String inviteLink) {
         Optional<ProjectInviteLink> optSavedInviteLink = projectInviteLinkRepository.findProjectInviteLinkByLink(inviteLink);
         if (optSavedInviteLink.isEmpty()) {
-            return false;
+            throw new DataNotFoundException("Not found valid link");
         }
         var savedLink = optSavedInviteLink.get();
         UserDto userDto = userContextService.getCurrentUser();
         User user = userRepository.findUserById(userDto.id());
         ProjectMember projectMember = new ProjectMember(user, savedLink.getProject(), ProjectRole.MEMBER, 1);//TODO переделать на настройки кастомные
         projectMemberRepository.save(projectMember);
-        return true;
+        return projectMapper.fromModel(savedLink.getProject());
     }
 
     private Project getProjectByIdForCurrenUser(long projectId) {

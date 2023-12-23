@@ -20,5 +20,5 @@ public interface ProjectService {
 
     String generateInviteLink(long projectId);
 
-    boolean enterFromInviteLink(String inviteLink);
+    ProjectResponse enterFromInviteLink(String inviteLink);
 }

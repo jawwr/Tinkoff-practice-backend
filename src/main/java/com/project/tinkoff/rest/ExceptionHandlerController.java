@@ -16,7 +16,7 @@ public class ExceptionHandlerController {
             PermissionDeniedException.class,
             UserAlreadyExistInProjectException.class
     })
-    public ResponseEntity<ErrorMessageResponse> dataNotFoundException(DataNotFoundException e) {
+    public ResponseEntity<ErrorMessageResponse> dataNotFoundException(RuntimeException e) {
         log.error(e.getMessage());
         return ResponseEntity.badRequest().body(new ErrorMessageResponse(e.getMessage()));
     }

@@ -54,7 +54,7 @@ public class ProjectSettingsServiceImpl implements ProjectSettingsService {
 
     private void updateSettings(ProjectSettings projectSettings, ProjectSettingsRequest projectSettingsRequest) {
         if (projectSettingsRequest.voteCount() != projectSettings.getVoteCount()) {
-            projectSettings.setVoteCount(projectSettings.getVoteCount());
+            projectSettings.setVoteCount(projectSettingsRequest.voteCount());
         }
         if (projectSettingsRequest.period() != projectSettings.getPeriod()) {
             projectSettings.setPeriod(projectSettingsRequest.period());

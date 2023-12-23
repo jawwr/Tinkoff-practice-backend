@@ -1,12 +1,8 @@
 package com.project.tinkoff.service.implementation;
 
 import com.project.tinkoff.exception.DataNotFoundException;
-import com.project.tinkoff.exception.UserAlreadyExistInProjectException;
 import com.project.tinkoff.mapper.ProjectMapper;
-import com.project.tinkoff.repository.ProjectInviteLinkRepository;
-import com.project.tinkoff.repository.ProjectMemberRepository;
-import com.project.tinkoff.repository.ProjectRepository;
-import com.project.tinkoff.repository.UserRepository;
+import com.project.tinkoff.repository.*;
 import com.project.tinkoff.repository.models.*;
 import com.project.tinkoff.rest.v1.models.request.ProjectRequest;
 import com.project.tinkoff.rest.v1.models.response.ProjectResponse;
@@ -15,6 +11,7 @@ import com.project.tinkoff.service.UserContextService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +30,10 @@ public class ProjectServiceImpl implements ProjectService {
     private final UserRepository userRepository;
     private final ProjectMemberRepository projectMemberRepository;
     private final ProjectInviteLinkRepository projectInviteLinkRepository;
+    private final ProjectSettingsRepository projectSettingsRepository;
+
+    @Value("${app.invite-link.expire-time-minutes}")
+    private int inviteLinkExpireTime;
 
     @Override
     @Transactional(readOnly = true)
@@ -51,8 +52,11 @@ public class ProjectServiceImpl implements ProjectService {
         Project newProject = new Project(project.title(), currentUser.id(), Collections.emptyList());
         Project savedProject = repository.save(newProject);
 
+        ProjectSettings projectSettings = ProjectSettings.defaultSettings(savedProject);
+        projectSettingsRepository.save(projectSettings);
+
         User user = userRepository.findUserById(currentUser.id());
-        ProjectMember projectMember = new ProjectMember(user, savedProject, ProjectRole.ADMIN, 1);
+        ProjectMember projectMember = new ProjectMember(user, savedProject, ProjectRole.ADMIN, projectSettings.getVoteCount());
         projectMemberRepository.save(projectMember);
 
         return projectMapper.fromModel(savedProject);
@@ -77,7 +81,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public boolean deleteProject(long id) {
         repository.deleteById(id);
-        return true;
+        return projectSettingsRepository.deleteByProjectId(id);
     }
 
     @Override
@@ -93,7 +97,7 @@ public class ProjectServiceImpl implements ProjectService {
         ProjectInviteLink inviteLink = ProjectInviteLink.builder()
                 .project(project)
                 .link(link)
-                .expireTime(LocalDateTime.now().plusMinutes(10))
+                .expireTime(LocalDateTime.now().plusMinutes(inviteLinkExpireTime))
                 .build();
         projectInviteLinkRepository.save(inviteLink);
         return link;
@@ -107,15 +111,21 @@ public class ProjectServiceImpl implements ProjectService {
             throw new DataNotFoundException("Not found valid link");
         }
         var savedLink = optSavedInviteLink.get();
+        Project project = savedLink.getProject();
+
         UserDto userDto = userContextService.getCurrentUser();
-        var savedProjectMember = projectMemberRepository.findProjectMemberByProjectIdAndUserId(savedLink.getProject().getId(), userDto.id());
+        var savedProjectMember = projectMemberRepository.findProjectMemberByProjectIdAndUserId(project.getId(), userDto.id());
         if (savedProjectMember.isPresent()) {
-            return projectMapper.fromModel(savedLink.getProject());
+            return projectMapper.fromModel(project);
         }
+
+        ProjectSettings projectSettings = projectSettingsRepository.findByProjectId(project.getId());
+
         User user = userRepository.findUserById(userDto.id());
-        ProjectMember projectMember = new ProjectMember(user, savedLink.getProject(), ProjectRole.MEMBER, 1);//TODO переделать на настройки кастомные
+        ProjectMember projectMember = new ProjectMember(user, project, ProjectRole.MEMBER, projectSettings.getVoteCount());
         projectMemberRepository.save(projectMember);
-        return projectMapper.fromModel(savedLink.getProject());
+
+        return projectMapper.fromModel(project);
     }
 
     private Project getProjectByIdForCurrenUser(long projectId) {

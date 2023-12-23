@@ -22,3 +22,10 @@ app:
       asdasdasd123123supersecretkey123123123asdasdasd
     expire-time:
       86400
+  invite-link:
+    expire-time-minutes:
+      10
+
+schedule:
+  project-settings-scheduler:
+    '0 0 0 * * *'

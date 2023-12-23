@@ -110,7 +110,7 @@ public class ProjectServiceImpl implements ProjectService {
         UserDto userDto = userContextService.getCurrentUser();
         var savedProjectMember = projectMemberRepository.findProjectMemberByProjectIdAndUserId(savedLink.getProject().getId(), userDto.id());
         if (savedProjectMember.isPresent()) {
-            throw new UserAlreadyExistInProjectException(String.format("User with id %d already in project '%s'", userDto.id(), savedLink.getProject().getTitle()));
+            projectMapper.fromModel(savedLink.getProject());
         }
         User user = userRepository.findUserById(userDto.id());
         ProjectMember projectMember = new ProjectMember(user, savedLink.getProject(), ProjectRole.MEMBER, 1);//TODO переделать на настройки кастомные

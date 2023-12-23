@@ -1,6 +1,7 @@
 package com.project.tinkoff.service.implementation;
 
 import com.project.tinkoff.exception.DataNotFoundException;
+import com.project.tinkoff.exception.UserAlreadyExistInProjectException;
 import com.project.tinkoff.mapper.ProjectMapper;
 import com.project.tinkoff.repository.ProjectInviteLinkRepository;
 import com.project.tinkoff.repository.ProjectMemberRepository;
@@ -107,6 +108,10 @@ public class ProjectServiceImpl implements ProjectService {
         }
         var savedLink = optSavedInviteLink.get();
         UserDto userDto = userContextService.getCurrentUser();
+        var savedProjectMember = projectMemberRepository.findProjectMemberByProjectIdAndUserId(savedLink.getProject().getId(), userDto.id());
+        if (savedProjectMember.isPresent()) {
+            throw new UserAlreadyExistInProjectException(String.format("User with id %d already in project '%s'", userDto.id(), savedLink.getProject().getTitle()));
+        }
         User user = userRepository.findUserById(userDto.id());
         ProjectMember projectMember = new ProjectMember(user, savedLink.getProject(), ProjectRole.MEMBER, 1);//TODO переделать на настройки кастомные
         projectMemberRepository.save(projectMember);

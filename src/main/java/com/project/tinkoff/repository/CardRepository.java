@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CardRepository extends JpaRepository<Card, Long> {
-    List<Card> findAllByProjectId(long projectId);
+    List<Card> findAllByProjectIdOrderByUpVoteDescCreateAtAsc(long projectId);
 
     Optional<Card> findByProjectIdAndId(long projectId, long cardId);
 

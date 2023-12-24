@@ -49,6 +49,11 @@ public class ProjectSettingsServiceImpl implements ProjectSettingsService {
         ProjectSettings projectSettings = projectSettingsRepository.findByProjectId(projectId);
         updateSettings(projectSettings, projectSettingsRequest);
         projectSettings = projectSettingsRepository.save(projectSettings);
+
+        List<ProjectMember> members = projectMemberRepository.findAllByProjectId(projectId);
+        updateMembers(members, projectSettings);
+        projectMemberRepository.saveAll(members);
+
         return projectSettingsMapper.fromModel(projectSettings);
     }
 

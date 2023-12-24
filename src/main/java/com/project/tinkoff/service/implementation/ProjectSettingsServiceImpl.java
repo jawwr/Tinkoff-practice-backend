@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -63,6 +64,10 @@ public class ProjectSettingsServiceImpl implements ProjectSettingsService {
         }
         if (projectSettingsRequest.period() != projectSettings.getPeriod()) {
             projectSettings.setPeriod(projectSettingsRequest.period());
+        }
+        if (!Objects.equals(projectSettingsRequest.projectTitle(), projectSettings.getProject().getTitle())) {
+            projectSettings.getProject().setTitle(projectSettingsRequest.projectTitle());
+            projectRepository.save(projectSettings.getProject());
         }
     }
 

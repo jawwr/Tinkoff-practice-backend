@@ -80,8 +80,9 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public boolean deleteProject(long id) {
-        repository.deleteById(id);
         projectSettingsRepository.deleteByProjectId(id);
+        projectMemberRepository.deleteAllByProjectId(id);
+        repository.deleteById(id);
         return true;
     }
 

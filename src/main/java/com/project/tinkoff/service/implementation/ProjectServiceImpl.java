@@ -1,6 +1,7 @@
 package com.project.tinkoff.service.implementation;
 
 import com.project.tinkoff.exception.DataNotFoundException;
+import com.project.tinkoff.exception.PermissionDeniedException;
 import com.project.tinkoff.mapper.ProjectMapper;
 import com.project.tinkoff.repository.*;
 import com.project.tinkoff.repository.models.*;
@@ -72,6 +73,11 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public ProjectResponse updateProject(long id, ProjectRequest projectRequest) {
         Project project = getProjectByIdForCurrenUser(id);
+        UserDto userDto = userContextService.getCurrentUser();
+        Optional<ProjectMember> member = projectMemberRepository.findProjectMemberByProjectIdAndUserId(id, userDto.id());
+        if (member.isEmpty() || !member.get().getRole().equals(ProjectRole.ADMIN)) {
+            throw new PermissionDeniedException("User don't have permissions");
+        }
         updateProject(project, projectRequest);
         Project updatedProject = repository.save(project);
         return projectMapper.fromModel(updatedProject);
@@ -80,6 +86,11 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public boolean deleteProject(long id) {
+        UserDto userDto = userContextService.getCurrentUser();
+        Optional<ProjectMember> member = projectMemberRepository.findProjectMemberByProjectIdAndUserId(id, userDto.id());
+        if (member.isEmpty() || !member.get().getRole().equals(ProjectRole.ADMIN)) {
+            throw new PermissionDeniedException("User don't have permissions");
+        }
         projectSettingsRepository.deleteByProjectId(id);
         projectMemberRepository.deleteAllByProjectId(id);
         repository.deleteById(id);

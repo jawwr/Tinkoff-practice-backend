@@ -18,17 +18,6 @@ public class TokenServiceImpl implements TokenService {
     private final JwtService jwtService;
 
     @Override
-    public User getUserByToken(String token) {
-        return tokenRepository.findByToken(token).getUser();
-    }
-
-    @Override
-    public boolean isTokenValid(String token) {
-        var user = getUserByToken(token);
-        return jwtService.isTokenValid(token, user.getLogin());
-    }
-
-    @Override
     public String generateToken(String userLogin) {
         return jwtService.generateToken(userLogin);
     }

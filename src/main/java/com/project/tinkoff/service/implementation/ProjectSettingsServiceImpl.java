@@ -1,11 +1,12 @@
 package com.project.tinkoff.service.implementation;
 
-import com.project.tinkoff.exception.PermissionDeniedException;
 import com.project.tinkoff.mapper.ProjectSettingsMapper;
 import com.project.tinkoff.repository.ProjectMemberRepository;
 import com.project.tinkoff.repository.ProjectRepository;
 import com.project.tinkoff.repository.ProjectSettingsRepository;
-import com.project.tinkoff.repository.models.*;
+import com.project.tinkoff.repository.models.Project;
+import com.project.tinkoff.repository.models.ProjectMember;
+import com.project.tinkoff.repository.models.ProjectSettings;
 import com.project.tinkoff.rest.v1.models.request.ProjectSettingsRequest;
 import com.project.tinkoff.rest.v1.models.response.ProjectSettingsResponse;
 import com.project.tinkoff.service.ProjectSettingsService;
@@ -20,7 +21,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @EnableScheduling
@@ -31,7 +31,6 @@ public class ProjectSettingsServiceImpl implements ProjectSettingsService {
     private final ProjectMemberRepository projectMemberRepository;
     private final ProjectRepository projectRepository;
     private final ProjectSettingsMapper projectSettingsMapper;
-    private final UserContextServiceImpl userContextService;
 
     @Override
     public ProjectSettingsResponse getProjectSettings(long projectId) {
@@ -42,11 +41,6 @@ public class ProjectSettingsServiceImpl implements ProjectSettingsService {
     @Override
     @Transactional
     public ProjectSettingsResponse updateProjectSettings(long projectId, ProjectSettingsRequest projectSettingsRequest) {
-        UserDto userDto = userContextService.getCurrentUser();
-        Optional<ProjectMember> projectMember = projectMemberRepository.findProjectMemberByProjectIdAndUserId(projectId, userDto.id());
-        if (projectMember.isEmpty() || projectMember.get().getRole().equals(ProjectRole.MEMBER)) {
-            throw new PermissionDeniedException("User don't have permission to update project settings");
-        }
         ProjectSettings projectSettings = projectSettingsRepository.findByProjectId(projectId);
         updateSettings(projectSettings, projectSettingsRequest);
         projectSettings = projectSettingsRepository.save(projectSettings);
@@ -74,7 +68,6 @@ public class ProjectSettingsServiceImpl implements ProjectSettingsService {
     @Scheduled(cron = "${schedule.project-settings-scheduler}")
     @Transactional
     public void scheduleProjectSettings() {
-        log.info("Update projects from settings");
         List<ProjectSettings> settings = projectSettingsRepository.findAll();
         var now = LocalDateTime.now();
         for (ProjectSettings setting : settings) {

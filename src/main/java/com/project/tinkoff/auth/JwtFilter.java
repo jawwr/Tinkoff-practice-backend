@@ -1,4 +1,4 @@
-package com.project.tinkoff.arth;
+package com.project.tinkoff.auth;
 
 import com.project.tinkoff.repository.TokenRepository;
 import com.project.tinkoff.repository.models.Token;

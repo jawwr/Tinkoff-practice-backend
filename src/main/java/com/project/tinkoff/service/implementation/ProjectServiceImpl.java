@@ -1,7 +1,6 @@
 package com.project.tinkoff.service.implementation;
 
 import com.project.tinkoff.exception.DataNotFoundException;
-import com.project.tinkoff.exception.PermissionDeniedException;
 import com.project.tinkoff.mapper.ProjectMapper;
 import com.project.tinkoff.repository.*;
 import com.project.tinkoff.repository.models.*;
@@ -13,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +38,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "projects", key = "authentication.name")
     public List<ProjectResponse> getAll() {
         UserDto user = userContextService.getCurrentUser();
         return repository.findAllUsersProjects(user.id())
@@ -73,11 +74,6 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public ProjectResponse updateProject(long id, ProjectRequest projectRequest) {
         Project project = getProjectByIdForCurrenUser(id);
-        UserDto userDto = userContextService.getCurrentUser();
-        Optional<ProjectMember> member = projectMemberRepository.findProjectMemberByProjectIdAndUserId(id, userDto.id());
-        if (member.isEmpty() || !member.get().getRole().equals(ProjectRole.ADMIN)) {
-            throw new PermissionDeniedException("User don't have permissions");
-        }
         updateProject(project, projectRequest);
         Project updatedProject = repository.save(project);
         return projectMapper.fromModel(updatedProject);
@@ -86,21 +82,11 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public boolean deleteProject(long id) {
-//        UserDto userDto = userContextService.getCurrentUser();
-//        Optional<ProjectMember> member = projectMemberRepository.findProjectMemberByProjectIdAndUserId(id, userDto.id());
-//        if (member.isEmpty() || !member.get().getRole().equals(ProjectRole.ADMIN)) {
-//            throw new PermissionDeniedException("User don't have permissions");
-//        }
         projectInviteLinkRepository.deleteAllByProjectId(id);
         projectSettingsRepository.deleteByProjectId(id);
         projectMemberRepository.deleteAllByProjectId(id);
         repository.deleteById(id);
         return true;
-    }
-
-    @Override
-    public boolean checkProjectExists(long id) {
-        return getProjectByIdForCurrenUser(id) != null;
     }
 
     @Override

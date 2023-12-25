@@ -1,19 +1,18 @@
 package com.project.tinkoff.service.implementation;
 
 import com.project.tinkoff.exception.DataNotFoundException;
-import com.project.tinkoff.exception.PermissionDeniedException;
 import com.project.tinkoff.mapper.CardMapper;
 import com.project.tinkoff.repository.CardRepository;
 import com.project.tinkoff.repository.ProjectMemberRepository;
+import com.project.tinkoff.repository.ProjectRepository;
 import com.project.tinkoff.repository.UserRepository;
 import com.project.tinkoff.repository.models.*;
 import com.project.tinkoff.rest.v1.models.request.CardRequest;
 import com.project.tinkoff.rest.v1.models.response.CardResponse;
-import com.project.tinkoff.rest.v1.models.response.ProjectResponse;
 import com.project.tinkoff.service.CardService;
-import com.project.tinkoff.service.ProjectService;
 import com.project.tinkoff.service.UserContextService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,18 +23,18 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CardServiceImpl implements CardService {
     private final CardRepository repository;
-    private final ProjectService projectService;
+    private final ProjectRepository projectRepository;
     private final UserContextService userContextService;
     private final CardMapper cardMapper;
     private final ProjectMemberRepository projectMemberRepository;
     private final UserRepository userRepository;
 
     @Override
+    @Cacheable(cacheNames = "projectCards", key = "#projectId")
     public List<CardResponse> getAllCards(long projectId) {
-        projectService.checkProjectExists(projectId);
         return repository.findAllByProjectIdOrderByUpVoteDescCreateAtAsc(projectId).stream()
                 .map(card -> {
-                    var author = userRepository.findUserById(card.getAuthorId());//TODO переделать
+                    var author = userRepository.findUserById(card.getAuthorId());
                     return cardMapper.fromModel(card, author.getUsername());
                 })
                 .toList();
@@ -43,21 +42,22 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public CardResponse getCardById(long projectId, long cardId) {
-        projectService.checkProjectExists(projectId);
         Optional<Card> card = repository.findByProjectIdAndId(projectId, cardId);
         if (card.isEmpty()) {
             throw new DataNotFoundException(String.format("Card with id %d doesn't exist in project with id %d", cardId, projectId));
         }
-        var author = userRepository.findUserById(card.get().getAuthorId());//TODO переделать
+        var author = userRepository.findUserById(card.get().getAuthorId());
         return cardMapper.fromModel(card.get(), author.getUsername());
     }
 
     @Override
     @Transactional
     public CardResponse createCard(long projectId, CardRequest card) {
-        ProjectResponse projectResponse = projectService.getProjectById(projectId);
-        Project project = new Project();
-        project.setId(projectResponse.id());
+        Optional<Project> optProject = projectRepository.findById(projectId);
+        if (optProject.isEmpty()) {
+            throw new DataNotFoundException("Project doesn't exists");
+        }
+        Project project = optProject.get();
         UserDto user = userContextService.getCurrentUser();
         Card newCard = Card.builder()
                 .title(card.title())
@@ -67,13 +67,12 @@ public class CardServiceImpl implements CardService {
                 .status(CardStatus.NEW)
                 .build();
         Card savedCard = repository.save(newCard);
-        return cardMapper.fromModel(savedCard, user.username());//TODO переделать
+        return cardMapper.fromModel(savedCard, user.username());
     }
 
     @Override
     @Transactional
     public CardResponse updateCard(long projectId, long cardId, CardRequest cardRequest) {
-        projectService.checkProjectExists(projectId);
         Optional<Card> optCard = repository.findByProjectIdAndId(projectId, cardId);
         if (optCard.isEmpty()) {
             throw new DataNotFoundException(String.format("Card with id %d doesn't exist in project with id %d", cardId, projectId));
@@ -82,7 +81,7 @@ public class CardServiceImpl implements CardService {
         updateSavedCard(card, cardRequest);
         repository.save(card);
         Card updatedCard = repository.findByProjectIdAndId(projectId, cardId).get();
-        var author = userRepository.findUserById(updatedCard.getAuthorId());//TODO переделать
+        var author = userRepository.findUserById(updatedCard.getAuthorId());
         return cardMapper.fromModel(updatedCard, author.getUsername());
     }
 
@@ -101,15 +100,6 @@ public class CardServiceImpl implements CardService {
     @Override
     @Transactional
     public boolean deleteCard(long projectId, long cardId) {
-        UserDto user = userContextService.getCurrentUser();
-        Optional<ProjectMember> optProjectMember = projectMemberRepository.findProjectMemberByProjectIdAndUserId(projectId, user.id());
-        if (optProjectMember.isEmpty()) {
-            throw new DataNotFoundException(String.format("Card with id %d doesn't exist in project with id %d", cardId, projectId));
-        }
-        ProjectMember projectMember = optProjectMember.get();
-        if (projectMember.getRole() != ProjectRole.ADMIN) {
-            throw new PermissionDeniedException("User don't have permission for deleting");
-        }
         repository.deleteByProjectIdAndId(projectId, cardId);
         return true;
     }
@@ -117,7 +107,6 @@ public class CardServiceImpl implements CardService {
     @Override
     @Transactional
     public boolean vote(long projectId, long cardId, VoteType voteType) {
-        projectService.checkProjectExists(projectId);
         UserDto currentUser = userContextService.getCurrentUser();
         ProjectMember member = projectMemberRepository.findProjectMemberByProjectIdAndUserId(projectId, currentUser.id()).get();
 

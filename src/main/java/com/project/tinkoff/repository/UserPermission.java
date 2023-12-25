@@ -1,0 +1,18 @@
+package com.project.tinkoff.repository;
+
+public enum UserPermission {
+    GET_PROJECT_BY_ID,
+    UPDATE_PROJECT,
+    DELETE_PROJECT,
+    GET_CARD_BY_ID,
+    GET_ALL_CARDS,
+    CREATE_CARD,
+    UPDATE_CARD,
+    DELETE_CARD,
+    VOTE_CARD,
+    GENERATE_LINK,
+    GET_MEMBERS,
+    DELETE_MEMBERS,
+    GET_PROJECT_SETTINGS,
+    UPDATE_PROJECT_SETTINGS
+}

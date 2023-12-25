@@ -16,8 +16,6 @@ public interface ProjectService {
 
     boolean deleteProject(long id);
 
-    boolean checkProjectExists(long id);
-
     String generateInviteLink(long projectId);
 
     ProjectResponse enterFromInviteLink(String inviteLink);

@@ -1,6 +1,8 @@
 package com.project.tinkoff.repository.models;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -21,12 +23,6 @@ public class UserDetailImpl implements UserDetails {
     private Collection<? extends GrantedAuthority> authorities;
 
     public static UserDetailImpl of(User user) {
-        //TODO переделать
-//        List<GrantedAuthority> authorities = user.getPermissions()
-//                .stream()
-//                .map(role -> new SimpleGrantedAuthority(role.getName()))
-//                .collect(Collectors.toList());
-
         List<GrantedAuthority> authorities = Collections.emptyList();
 
         return new UserDetailImpl(

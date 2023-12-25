@@ -16,11 +16,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existUserByLogin(String login);
 
     User findUserById(long id);
-
-    @Modifying
-    @Query(value = """
-            delete from users
-            where id = :#{#id};
-            """, nativeQuery = true)
-    void deleteUserById(long id);
 }

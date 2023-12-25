@@ -1,6 +1,6 @@
 package com.project.tinkoff.config;
 
-import com.project.tinkoff.arth.JwtFilter;
+import com.project.tinkoff.auth.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

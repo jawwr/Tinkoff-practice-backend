@@ -14,4 +14,6 @@ public interface ProjectInviteLinkRepository extends JpaRepository<ProjectInvite
               and expire_time > now();
             """, nativeQuery = true)
     Optional<ProjectInviteLink> findProjectInviteLinkByLink(String link);
+
+    void deleteAllByProjectId(long projectId);
 }

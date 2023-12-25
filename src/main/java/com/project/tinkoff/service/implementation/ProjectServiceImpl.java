@@ -86,11 +86,12 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public boolean deleteProject(long id) {
-        UserDto userDto = userContextService.getCurrentUser();
-        Optional<ProjectMember> member = projectMemberRepository.findProjectMemberByProjectIdAndUserId(id, userDto.id());
-        if (member.isEmpty() || !member.get().getRole().equals(ProjectRole.ADMIN)) {
-            throw new PermissionDeniedException("User don't have permissions");
-        }
+//        UserDto userDto = userContextService.getCurrentUser();
+//        Optional<ProjectMember> member = projectMemberRepository.findProjectMemberByProjectIdAndUserId(id, userDto.id());
+//        if (member.isEmpty() || !member.get().getRole().equals(ProjectRole.ADMIN)) {
+//            throw new PermissionDeniedException("User don't have permissions");
+//        }
+        projectInviteLinkRepository.deleteAllByProjectId(id);
         projectSettingsRepository.deleteByProjectId(id);
         projectMemberRepository.deleteAllByProjectId(id);
         repository.deleteById(id);
